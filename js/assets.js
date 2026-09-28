@@ -40,7 +40,7 @@ export async function loadAssets(renderer, onProgress = () => {}) {
   });
 
   const modelJobs = MODELS.map(async (name) => {
-    const g = await gltfLoader.loadAsync(`assets/models/${name}.glb`);
+    const g = await loadModel(gltfLoader, name);
     g.scene.traverse((o) => {
       if (o.isMesh) {
         o.castShadow = false;
@@ -54,6 +54,20 @@ export async function loadAssets(renderer, onProgress = () => {}) {
 
   await Promise.all([...texJobs, ...modelJobs]);
   return A;
+}
+
+/** Load assets/models/<name>.glb; hosts that can't serve .glb get a
+ *  base64-wrapped copy (<name>.glb.json, {"glb": "..."}) instead. */
+async function loadModel(loader, name) {
+  const url = `assets/models/${name}.glb`;
+  let buf;
+  const res = await fetch(url).catch(() => null);
+  if (res && res.ok) buf = await res.arrayBuffer();
+  else {
+    const j = await (await fetch(`${url}.json`)).json();
+    buf = Uint8Array.from(atob(j.glb), (c) => c.charCodeAt(0)).buffer;
+  }
+  return loader.parseAsync(buf, 'assets/models/');
 }
 
 /** Clone a model; any material named "boot" is swapped for `bootMat`. */
