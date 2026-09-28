@@ -184,6 +184,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .btn.danger{border-color:rgba(255,53,82,.7);color:#ffc2cc;background:rgba(90,10,20,.35)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
+/* language switch (menu corner + options row) */
+.lang-switch{display:inline-flex;border:1.5px solid rgba(120,200,255,.55);border-radius:8px;overflow:hidden;background:rgba(8,14,32,.78);box-shadow:0 0 14px rgba(95,242,255,.2)}
+.lang-switch button{font-family:var(--f-title);font-weight:700;font-size:13px;letter-spacing:.08em;padding:8px 12px;color:#9fb4d0;transition:.15s}
+.lang-switch button+button{border-left:1px solid rgba(120,200,255,.35)}
+.lang-switch button.on{color:#07051a;background:var(--green);box-shadow:0 0 12px var(--green-glow)}
+.lang-switch button:hover:not(.on),.lang-switch button:focus-visible{color:#fff;outline:none;background:rgba(95,242,255,.15)}
+.opt-lang{grid-column:1/-1;flex-wrap:wrap}
+.menu-lang{position:absolute;left:calc(var(--gutter) + 6px);top:calc(var(--gutter) + env(safe-area-inset-top));pointer-events:auto}
+
 /* shop */
 .shop-list{display:grid;gap:12px}
 .shop-item{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:12px 14px;border-radius:10px;
@@ -264,6 +273,7 @@ body.no-crt #crt .scan{display:none}
   #hud{grid-template-columns:1fr 1fr}
   .hud-title{display:none}
   .operator{display:none}
+  .menu-lang{top:auto;bottom:calc(var(--gutter) + 64px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%)}
   .sysline{font-size:10px}
   .menu-blade{display:none}
   .shop-item{grid-template-columns:auto 1fr}

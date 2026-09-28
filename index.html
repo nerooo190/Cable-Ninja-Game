@@ -77,7 +77,7 @@
   <!-- ============ IN-GAME HUD (gameplay.jpg) ============ -->
   <header id="hud" class="hidden">
     <div class="hud-bw">
-      <div class="hud-cap">BANDBREITE:</div>
+      <div class="hud-cap" data-i18n="hud.bandwidth">BANDBREITE:</div>
       <div class="hud-num"><span id="score">0</span><small>GB/s</small></div>
       <div id="boost" class="boost hidden"><svg><use href="#i-bolt"/></svg> UPLINK BOOST x2 <i id="boostTime"></i></div>
       <div id="comboMeter" class="combo-meter"></div>
@@ -92,7 +92,7 @@
       <div id="hearts" class="hearts"></div>
       <div id="timer" class="timer hidden">60</div>
     </div>
-    <button id="pauseBtn" class="icon-btn" aria-label="Pause"><svg><use href="#i-pause"/></svg></button>
+    <button id="pauseBtn" class="icon-btn" aria-label="Pause" data-i18n-aria="aria.pause"><svg><use href="#i-pause"/></svg></button>
   </header>
 
   <!-- ============ MAIN MENU (menu.jpg) ============ -->
@@ -106,9 +106,12 @@
       <img src="assets/textures/ui_avatar.png" alt="" width="46" height="46">
       <div><small>BANDWIDTH OPS:</small><b id="opName">USER_404</b></div>
     </div>
+    <div class="lang-switch menu-lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de">DE</button><button type="button" data-lang="en">EN</button>
+    </div>
     <img class="menu-blade" src="assets/textures/fx_laser_blade.png" alt="">
-    <p class="menu-hint"><span>&#9986;</span> Schneide ein Kabel, um zu wählen</p>
-    <footer class="menu-footer">
+    <p class="menu-hint"><span>&#9986;</span> <span data-i18n="menu.hint">Schneide ein Kabel, um zu wählen</span></p>
+    <footer class="menu-footer" data-i18n-html="menu.footer">
       BEST BANDWIDTH: <b id="bestScore">0</b> GB/s // PING: <span id="ping">4</span>ms | PACKETS: OK // DATENVOLUMEN: <b id="credits">0</b> TB // SERVER_LOCATION: HANOVER, GERMANY
     </footer>
   </section>
@@ -116,24 +119,29 @@
   <!-- ============ UPGRADES ============ -->
   <section id="shop" class="screen panel-screen hidden">
     <div class="panel">
-      <div class="panel-head"><svg class="ph-icon yellow"><use href="#i-wrench"/></svg><h2>RACK-UPGRADES</h2><span class="ph-credits">DATENVOLUMEN: <b id="shopCredits">0</b> TB</span></div>
+      <div class="panel-head"><svg class="ph-icon yellow"><use href="#i-wrench"/></svg><h2 data-i18n="shop.title">RACK-UPGRADES</h2><span class="ph-credits"><span data-i18n="shop.credits">DATENVOLUMEN:</span> <b id="shopCredits">0</b> TB</span></div>
       <div id="shopList" class="shop-list"></div>
-      <div class="panel-foot"><button class="btn" data-action="back">&#8592; ZURÜCK</button></div>
+      <div class="panel-foot"><button class="btn" data-action="back" data-i18n="btn.back">&#8592; ZURÜCK</button></div>
     </div>
   </section>
 
   <!-- ============ OPTIONS ============ -->
   <section id="options" class="screen panel-screen hidden">
     <div class="panel">
-      <div class="panel-head"><svg class="ph-icon grey"><use href="#i-gear"/></svg><h2>SYSTEM-CONFIG</h2></div>
+      <div class="panel-head"><svg class="ph-icon grey"><use href="#i-gear"/></svg><h2 data-i18n="opt.title">SYSTEM-CONFIG</h2></div>
       <div class="opt-grid">
-        <label class="opt"><span>SOUND-FX</span><input type="checkbox" data-opt="sfx"><i></i></label>
-        <label class="opt"><span>SERVER-BRUMMEN (MUSIK)</span><input type="checkbox" data-opt="music"><i></i></label>
-        <label class="opt"><span>NEON-BLOOM (GRAFIK)</span><input type="checkbox" data-opt="bloom"><i></i></label>
-        <label class="opt"><span>CRT-SCANLINES</span><input type="checkbox" data-opt="crt"><i></i></label>
-        <label class="opt"><span>SCREEN-SHAKE</span><input type="checkbox" data-opt="shake"><i></i></label>
-        <label class="opt"><span>WINKEL-OVERLAY (SKIZZE)</span><input type="checkbox" data-opt="protractor"><i></i></label>
-        <div class="opt opt-row"><span>KLINGENFARBE</span>
+        <div class="opt opt-row opt-lang"><span data-i18n="opt.lang">SPRACHE / LANGUAGE</span>
+          <div class="lang-switch" role="group" aria-label="Sprache / Language">
+            <button type="button" data-lang="de">DEUTSCH</button><button type="button" data-lang="en">ENGLISH</button>
+          </div>
+        </div>
+        <label class="opt"><span data-i18n="opt.sfx">SOUND-FX</span><input type="checkbox" data-opt="sfx"><i></i></label>
+        <label class="opt"><span data-i18n="opt.music">SERVER-BRUMMEN (MUSIK)</span><input type="checkbox" data-opt="music"><i></i></label>
+        <label class="opt"><span data-i18n="opt.bloom">NEON-BLOOM (GRAFIK)</span><input type="checkbox" data-opt="bloom"><i></i></label>
+        <label class="opt"><span data-i18n="opt.crt">CRT-SCANLINES</span><input type="checkbox" data-opt="crt"><i></i></label>
+        <label class="opt"><span data-i18n="opt.shake">SCREEN-SHAKE</span><input type="checkbox" data-opt="shake"><i></i></label>
+        <label class="opt"><span data-i18n="opt.protractor">WINKEL-OVERLAY (SKIZZE)</span><input type="checkbox" data-opt="protractor"><i></i></label>
+        <div class="opt opt-row"><span data-i18n="opt.blade">KLINGENFARBE</span>
           <div class="swatches" id="bladeSwatches">
             <button data-blade="cyan" style="--c:#39e8ff" aria-label="Cyan"></button>
             <button data-blade="magenta" style="--c:#ff4fd8" aria-label="Magenta"></button>
@@ -141,11 +149,11 @@
             <button data-blade="green" style="--c:#6dff6a" aria-label="Grün"></button>
           </div>
         </div>
-        <div class="opt opt-row"><span>OPERATOR-NAME</span><input type="text" id="nameInput" maxlength="12" spellcheck="false" autocomplete="off"></div>
+        <div class="opt opt-row"><span data-i18n="opt.name">OPERATOR-NAME</span><input type="text" id="nameInput" maxlength="12" spellcheck="false" autocomplete="off"></div>
       </div>
       <div class="panel-foot">
-        <button class="btn danger" data-action="reset">FORMATIEREN (RESET)</button>
-        <button class="btn" data-action="back">&#8592; ZURÜCK</button>
+        <button class="btn danger" data-action="reset" data-i18n="opt.reset">FORMATIEREN (RESET)</button>
+        <button class="btn" data-action="back" data-i18n="btn.back">&#8592; ZURÜCK</button>
       </div>
     </div>
   </section>
@@ -153,12 +161,12 @@
   <!-- ============ PAUSE ============ -->
   <section id="pause" class="screen panel-screen hidden">
     <div class="panel small">
-      <div class="panel-head"><h2>WARTUNGSMODUS</h2></div>
-      <p class="mono center">Schicht pausiert. Kabel hängen in der Luft …</p>
+      <div class="panel-head"><h2 data-i18n="pause.title">WARTUNGSMODUS</h2></div>
+      <p class="mono center" data-i18n="pause.text">Schicht pausiert. Kabel hängen in der Luft …</p>
       <div class="panel-foot col">
-        <button class="btn primary" data-action="resume">WEITER</button>
-        <button class="btn" data-action="restart">NEUSTART</button>
-        <button class="btn" data-action="menu">HAUPTMENÜ</button>
+        <button class="btn primary" data-action="resume" data-i18n="btn.resume">WEITER</button>
+        <button class="btn" data-action="restart" data-i18n="btn.restart">NEUSTART</button>
+        <button class="btn" data-action="menu" data-i18n="btn.menu">HAUPTMENÜ</button>
       </div>
     </div>
   </section>
@@ -170,10 +178,10 @@
       <h2 id="goTitle">SYSTEMABSTURZ</h2>
       <p class="mono" id="goReason">KERNEL_PANIC: 400V_CONTACT_DETECTED</p>
       <div class="go-stats" id="goStats"></div>
-      <div id="goRecord" class="go-record hidden">NEUER REKORD!</div>
+      <div id="goRecord" class="go-record hidden" data-i18n="go.record">NEUER REKORD!</div>
       <div class="panel-foot">
-        <button class="btn primary" data-action="restart">NEUE SCHICHT</button>
-        <button class="btn" data-action="menu">HAUPTMENÜ</button>
+        <button class="btn primary" data-action="restart" data-i18n="go.newShift">NEUE SCHICHT</button>
+        <button class="btn" data-action="menu" data-i18n="btn.menu">HAUPTMENÜ</button>
       </div>
     </div>
   </section>

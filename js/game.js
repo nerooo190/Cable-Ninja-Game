@@ -6,6 +6,7 @@ import { fx } from './effects.js';
 import { audio } from './audio.js';
 import { save, persist } from './storage.js';
 import { ui } from './ui.js';
+import { t } from './i18n.js';
 
 export const MODES = {
   classic: { lives: 3, time: 0, speed: 1.0, hazard: [0.07, 0.22], mult: 1, crash: true },
@@ -14,10 +15,10 @@ export const MODES = {
 };
 
 const GRADES = {
-  perfect: { mult: 3, label: 'PERFEKT!' },
-  clean: { mult: 2, label: 'SAUBERER SCHNITT' },
-  ok: { mult: 1, label: 'OK' },
-  bad: { mult: 0.5, label: 'SCHRÄG' },
+  perfect: { mult: 3 },
+  clean: { mult: 2 },
+  ok: { mult: 1 },
+  bad: { mult: 0.5 },
 };
 
 const MIN_SPEED = 320; // px/s — below that the blade doesn't cut
@@ -68,10 +69,10 @@ export class Game {
 
     this.blade.onStrokeEnd = () => this._finishCombo();
     const hint = this.firstGame
-      ? ['SCHNEIDE IM 90°-WINKEL', 'Rechter Winkel = maximale Bandbreite']
-      : ['SCHICHT STARTET', modeKey === 'rush' ? '60 Sekunden – kappe so viel du kannst!' : 'Meide 400V-Leitungen & Firewalls!'];
+      ? [t('hint.first'), t('hint.first.sub')]
+      : [t('hint.start'), t(modeKey === 'rush' ? 'hint.rush' : 'hint.avoid')];
     ui.bigPopup(world.width / 2, world.height * 0.42, hint[0], hint[1], 'combo');
-    if (this.firstGame) setTimeout(() => this.running && ui.bigPopup(world.width / 2, world.height * 0.42, '⚠ 400V & FIREWALLS', 'Berührung = Systemabsturz', 'bad'), 1700);
+    if (this.firstGame) setTimeout(() => this.running && ui.bigPopup(world.width / 2, world.height * 0.42, t('hint.hazard'), t('hint.hazard.sub'), 'bad'), 1700);
   }
 
   clear() {
@@ -258,7 +259,7 @@ export class Game {
       const pts = o.points * mm * boost;
       this._addScore(pts);
       this.stats.packets++;
-      ui.popup(hit.x, hit.y - 20, pts, 'ok', 'PAKET GELÖSCHT');
+      ui.popup(hit.x, hit.y - 20, pts, 'ok', t('g.packet'));
       this._comboStep(seg, hit);
       return;
     }
@@ -301,14 +302,14 @@ export class Game {
     this.stats.cuts++;
     this.stats.angleSum += hit.angle;
     if (grade === 'perfect') this.stats.perfect++;
-    ui.popup(hit.x, hit.y - 26, pts, grade, `${Math.round(hit.angle)}° ${GRADES[grade].label}`, strip ? 'KABELENDE GEKAPPT x1.5' : '');
+    ui.popup(hit.x, hit.y - 26, pts, grade, `${Math.round(hit.angle)}° ${t(`g.${grade}`)}`, strip ? t('g.strip') : '');
     this.blade.sketch(hit, grade);
 
     if (o.bonus) {
       this.boostT = 8;
       ui.setBoost(this.boostT);
       audio.boost();
-      ui.bigPopup(world.width / 2, world.height * 0.35, 'UPLINK BOOST x2', 'Glasfaser-Bündel gekappt – 8s doppelte Bandbreite', 'boost');
+      ui.bigPopup(world.width / 2, world.height * 0.35, t('hud.boost'), t('g.boost.sub'), 'boost');
     }
     this._comboStep(seg, hit);
   }
@@ -339,7 +340,7 @@ export class Game {
     if (c.count >= 3 && this.state === 'play') {
       const bonus = c.count * 50 * this.mode.mult * (this.boostT > 0 ? 2 : 1);
       this._addScore(bonus);
-      ui.bigPopup(Math.min(world.width - 120, Math.max(120, c.x)), Math.max(120, c.y - 70), `COMBO x${c.count}`, `+${bonus} GB/s KABELSALAT-BONUS`, 'combo');
+      ui.bigPopup(Math.min(world.width - 120, Math.max(120, c.x)), Math.max(120, c.y - 70), `COMBO x${c.count}`, t('g.combo.sub', { n: bonus }), 'combo');
       audio.combo(c.count);
     }
     this.stats.maxCombo = Math.max(this.stats.maxCombo, c.count);
@@ -352,7 +353,7 @@ export class Game {
     const s = o.screenCenter(project, { x: 0, y: 0 });
     audio.miss();
     if (!this.mode.lives) {
-      ui.missMark(s.x, 'VERPASST');
+      ui.missMark(s.x, t('g.missed'));
       return;
     }
     this.lives--;
@@ -373,7 +374,7 @@ export class Game {
     ui.flash(hit.x, hit.y);
     ui.shake(true);
     this.blade.cancel();
-    ui.bigPopup(world.width / 2, world.height * 0.45, 'SYSTEMABSTURZ', this.crashCause === 'hv' ? '400V KONTAKT!' : 'FIREWALL DURCHTRENNT!', 'bad');
+    ui.bigPopup(world.width / 2, world.height * 0.45, t('go.crash'), t(this.crashCause === 'hv' ? 'g.crash.hv' : 'g.crash.fw'), 'bad');
   }
 
   _rushPenalty(o, hit, wp) {
@@ -388,7 +389,7 @@ export class Game {
     this.timeLeft = Math.max(0, this.timeLeft - 5);
     this.score = Math.max(0, this.score - 250);
     ui.setScore(this.score, true);
-    ui.bigPopup(hit.x, hit.y - 40, '−5s  −250', o.kind === 'firewall' ? 'FIREWALL BLOCKIERT' : '400V STROMSCHLAG', 'bad');
+    ui.bigPopup(hit.x, hit.y - 40, '−5s  −250', t(o.kind === 'firewall' ? 'g.pen.fw' : 'g.pen.hv'), 'bad');
     this._finishCombo();
   }
 
@@ -414,9 +415,10 @@ export class Game {
     persist();
 
     const titles = {
-      crash: ['SYSTEMABSTURZ', this.crashCause === 'firewall' ? 'FIREWALL_BREACH: ACCESS_DENIED (0xDEADBEEF)' : 'KERNEL_PANIC: 400V_CONTACT_DETECTED'],
-      lost: ['SERVER OFFLINE', 'PACKET_LOSS: 100% // ZU VIELE KABEL VERPASST'],
-      timeup: ['SCHICHTENDE', 'FIBER RUSH ABGESCHLOSSEN // 60s UPTIME'],
+      // i18n keys, translated when the panel is shown
+      crash: ['go.crash', this.crashCause === 'firewall' ? 'go.crash.fw' : 'go.crash.hv'],
+      lost: ['go.lost', 'go.lost.reason'],
+      timeup: ['go.timeup', 'go.timeup.reason'],
     };
     this.hooks.onGameOver({
       kind,

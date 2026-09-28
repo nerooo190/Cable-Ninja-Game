@@ -1,26 +1,27 @@
 // DOM layer: HUD, popups, panels (shop / options / pause / game over).
 import { save, persist, resetSave, bestOverall } from './storage.js';
 import { audio } from './audio.js';
+import { t, lang, setLang } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const fmt = (n) => Math.round(n).toLocaleString('en-US');
 
 export const UPGRADES = [
   {
-    id: 'blade', title: 'LASER-KLINGE MK', icon: 'i-bolt', color: '#39e8ff', costs: [300, 800, 1600],
-    desc: (lv) => `Breitere Klinge & längere Spur. PERFEKT-Fenster ±${6 + 3 * lv}° → ±${6 + 3 * (lv + 1)}°`,
+    id: 'blade', icon: 'i-bolt', color: '#39e8ff', costs: [300, 800, 1600],
+    desc: (lv) => t('up.blade.desc', { a: 6 + 3 * lv, b: 6 + 3 * (lv + 1) }),
   },
   {
-    id: 'psu', title: 'REDUNDANTES NETZTEIL', icon: 'i-heart', color: '#ff2447', costs: [500, 1500],
-    desc: () => '+1 Server-Status-Herz (N+1 Redundanz) im Schicht- & 400V-Modus',
+    id: 'psu', icon: 'i-heart', color: '#ff2447', costs: [500, 1500],
+    desc: () => t('up.psu.desc'),
   },
   {
-    id: 'cooling', title: 'FLÜSSIGKÜHLUNG', icon: 'i-gear', color: '#5ff2ff', costs: [400, 1000],
-    desc: (lv) => `Kabel fliegen ${8 * (lv + 1)}% langsamer – mehr Zeit für den 90°-Schnitt`,
+    id: 'cooling', icon: 'i-gear', color: '#5ff2ff', costs: [400, 1000],
+    desc: (lv) => t('up.cooling.desc', { p: 8 * (lv + 1) }),
   },
   {
-    id: 'guide', title: 'WINKEL-LASER', icon: 'i-wrench', color: '#ffc933', costs: [600],
-    desc: () => 'Projiziert eine handgezeichnete 90°-Hilfslinie auf jedes Kabel',
+    id: 'guide', icon: 'i-wrench', color: '#ffc933', costs: [600],
+    desc: () => t('up.guide.desc'),
   },
 ];
 
@@ -60,13 +61,12 @@ export const ui = {
   setHud(visible, mode) {
     this.hud.classList.toggle('hidden', !visible);
     if (!visible) return;
-    const names = { classic: 'SCHICHT // CLASSIC', rush: 'FIBER RUSH // 60s', nightmare: '⚡ 400V NIGHTMARE ⚡' };
-    this.modeTag.textContent = names[mode];
+    this.modeTag.textContent = t(`mode.${mode}`);
     this.modeTag.className = mode;
     const timed = mode === 'rush';
     this.hearts.classList.toggle('hidden', timed);
     this.timer.classList.toggle('hidden', !timed);
-    this.statusCap.textContent = timed ? 'UPTIME:' : 'SERVER-STATUS:';
+    this.statusCap.textContent = t(timed ? 'hud.uptime' : 'hud.status');
   },
 
   setScore(v, bump = false) {
@@ -101,7 +101,7 @@ export const ui = {
   },
 
   setCombo(n) {
-    this.comboMeter.textContent = n >= 2 ? `KETTE x${n}` : '';
+    this.comboMeter.textContent = n >= 2 ? t('hud.chain', { n }) : '';
   },
 
   // ---------------- popups ----------------
@@ -123,7 +123,7 @@ export const ui = {
     this._pop(el, 1300);
   },
 
-  missMark(x, label = 'PAKETVERLUST') {
+  missMark(x, label = t('g.miss')) {
     const el = document.createElement('div');
     el.className = 'miss-x';
     el.style.left = `${Math.max(40, Math.min(window.innerWidth - 40, x))}px`;
@@ -177,8 +177,8 @@ export const ui = {
       item.className = 'shop-item';
       item.innerHTML = `
         <div class="si-icon" style="color:${u.color}"><svg viewBox="0 0 64 64"><use href="#${u.icon}"/></svg></div>
-        <div><h3>${u.title}${u.costs.length > 1 ? ' ' + 'I'.repeat(Math.min(lv + 1, u.costs.length)) : ''}</h3>
-          <p>${maxed ? 'Voll ausgebaut. Rack läuft auf Anschlag.' : u.desc(lv)}</p>
+        <div><h3>${t(`up.${u.id}`)}${u.costs.length > 1 ? ' ' + 'I'.repeat(Math.min(lv + 1, u.costs.length)) : ''}</h3>
+          <p>${maxed ? t('shop.maxed') : u.desc(lv)}</p>
           <div class="lv">${u.costs.map((_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div></div>
         <button class="btn ${maxed ? '' : 'primary'}" ${maxed || save.credits < cost ? 'disabled' : ''}>${maxed ? 'MAX' : `${fmt(cost)} TB`}</button>`;
       item.querySelector('button').addEventListener('click', () => {
@@ -205,6 +205,15 @@ export const ui = {
         audio.click();
       });
     });
+    // language: DE / EN buttons in the menu corner and in the options panel
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-lang]');
+      if (!b) return;
+      audio.click();
+      setLang(b.dataset.lang);
+      this.markLang();
+    });
+    this.markLang();
     const sw = $('#bladeSwatches');
     sw.addEventListener('click', (e) => {
       const b = e.target.closest('[data-blade]');
@@ -229,6 +238,15 @@ export const ui = {
     document.querySelectorAll('[data-opt]').forEach((inp) => { inp.checked = !!save.options[inp.dataset.opt]; });
     $('#nameInput').value = save.name;
     this._markSwatch();
+    this.markLang();
+  },
+
+  markLang() {
+    const l = lang();
+    document.querySelectorAll('[data-lang]').forEach((b) => {
+      b.classList.toggle('on', b.dataset.lang === l);
+      b.setAttribute('aria-pressed', String(b.dataset.lang === l));
+    });
   },
 
   _markSwatch() {
@@ -257,16 +275,16 @@ export const ui = {
     if (r.kind === 'lost') panel.classList.add('lost');
     if (r.kind === 'timeup') panel.classList.add('timeup');
     $('.bsod-face').textContent = r.kind === 'timeup' ? ':)' : ':(';
-    $('#goTitle').textContent = r.title;
-    $('#goReason').textContent = r.reason;
+    $('#goTitle').textContent = t(r.title);
+    $('#goReason').textContent = t(r.reason);
     const stats = [
-      ['BANDBREITE', `${fmt(r.score)} GB/s`],
-      ['BESTWERT', `${fmt(r.best)} GB/s`],
-      ['KABEL GEKAPPT', fmt(r.cuts)],
-      ['PERFEKTE 90°', fmt(r.perfect)],
-      ['Ø WINKEL', r.cuts ? `${r.avgAngle.toFixed(1)}°` : '—'],
-      ['MAX. KETTE', `x${r.maxCombo}`],
-      ['DATENVOLUMEN', `+${fmt(r.credits)} TB`],
+      [t('st.bandwidth'), `${fmt(r.score)} GB/s`],
+      [t('st.best'), `${fmt(r.best)} GB/s`],
+      [t('st.cuts'), fmt(r.cuts)],
+      [t('st.perfect'), fmt(r.perfect)],
+      [t('st.angle'), r.cuts ? `${r.avgAngle.toFixed(1)}°` : '—'],
+      [t('st.combo'), `x${r.maxCombo}`],
+      [t('st.credits'), `+${fmt(r.credits)} TB`],
     ];
     $('#goStats').innerHTML = stats.map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
     $('#goRecord').classList.toggle('hidden', !r.record);

@@ -59,6 +59,12 @@ keine externen Ressourcen geladen.
 | **UPGRADES** | Rack-Upgrades mit verdientem Datenvolumen (TB): Laser-Klinge, Redundantes Netzteil, Flüssigkühlung, Winkel-Laser |
 | **OPTIONS** | Sound, Musik, Bloom, CRT-Scanlines, Screen-Shake, Winkel-Skizzen, Klingenfarbe, Operator-Name |
 
+### Sprache / Language
+
+Das Spiel ist zweisprachig (**Deutsch / English**). Beim ersten Start wird die Browsersprache übernommen;
+umschalten lässt sich jederzeit über den **DE | EN**-Schalter oben links im Hauptmenü oder unter
+**OPTIONS → SPRACHE / LANGUAGE**. Alle Texte liegen in [`js/i18n.js`](js/i18n.js).
+
 Rekorde, Datenvolumen, Upgrades und Optionen werden im `localStorage` gespeichert.
 
 ## Asset-Pipeline
@@ -98,6 +104,7 @@ js/blade.js         Eingabe, Laser-Klingen-Spur, Winkelskizzen, Blitze
 js/effects.js       Funken, Sprite-Bursts, Lichtstrahlen, Scherben
 js/audio.js         Komplett synthetisierter Sound (WebAudio)
 js/ui.js            HUD, Popups, Shop, Optionen, Game-Over
+js/i18n.js          Übersetzungen Deutsch / English
 tools/              Python-Asset-Pipeline
 assets/             Generierte Modelle, Texturen, Fonts
 vendor/three/       Three.js r170 (MIT)

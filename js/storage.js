@@ -6,7 +6,7 @@ const DEFAULTS = {
   credits: 0,
   best: { classic: 0, rush: 0, nightmare: 0 },
   upgrades: { blade: 0, psu: 0, cooling: 0, guide: 0 },
-  options: { sfx: true, music: true, bloom: true, crt: true, shake: true, protractor: true, blade: 'cyan' },
+  options: { lang: '', sfx: true, music: true, bloom: true, crt: true, shake: true, protractor: true, blade: 'cyan' },
   stats: { games: 0, cuts: 0, perfect: 0 },
 };
 

@@ -5,14 +5,18 @@ import { Cable, shapeFromPoints } from './cables.js';
 import { world, toScreen, toWorld } from './world.js';
 import { fx } from './effects.js';
 import { audio } from './audio.js';
+import { t } from './i18n.js';
 
 const ITEMS = [
-  { id: 'classic', type: 'lan', ends: [null, 'rj45'], cls: 'start', title: 'START', sub: '[ SCHNITT: SCHICHT<br>STARTEN ]' },
-  { id: 'rush', type: 'terminal', ends: [null, 'rj45'], cls: 'rush', title: 'FIBER RUSH', sub: '[ SCHNITT: FIBER-RUSH<br>(TIME ATTACK) ]' },
-  { id: 'shop', type: 'bundle', ends: [null, null], cls: 'shop', title: 'UPGRADES', sub: '[ SCHNITT:<br>RACK-UPGRADES ]', icon: 'i-wrench' },
-  { id: 'options', type: 'coax', ends: [null, 'coax_f'], cls: 'opts', title: 'OPTIONS', sub: '[ SCHNITT:<br>SYSTEM-CONFIG ]', icon: 'i-gear' },
-  { id: 'nightmare', type: 'hv', ends: [null, 'hv_end'], cls: 'hv', title: '<svg viewBox="0 0 32 48"><use href="#i-bolt"/></svg> <span class="long">STARKSTROM </span>400V <svg viewBox="0 0 32 48"><use href="#i-bolt"/></svg>', sub: 'NIGHTMARE MODE - HIGH RISK' },
+  { id: 'classic', type: 'lan', ends: [null, 'rj45'], cls: 'start', key: 'menu.start' },
+  { id: 'rush', type: 'terminal', ends: [null, 'rj45'], cls: 'rush', key: 'menu.rush' },
+  { id: 'shop', type: 'bundle', ends: [null, null], cls: 'shop', key: 'menu.shop', icon: 'i-wrench' },
+  { id: 'options', type: 'coax', ends: [null, 'coax_f'], cls: 'opts', key: 'menu.options', icon: 'i-gear' },
+  { id: 'nightmare', type: 'hv', ends: [null, 'hv_end'], cls: 'hv', key: 'menu.hv' },
 ];
+
+const BOLT = '<svg viewBox="0 0 32 48"><use href="#i-bolt"/></svg>';
+const title = (it) => (it.id === 'nightmare' ? `${BOLT} <span class="long">${t('menu.hv.long')}</span>400V ${BOLT}` : t(it.key));
 
 const MIN_SPEED = 280;
 const project = (v, out) => toScreen(v, out);
@@ -61,7 +65,7 @@ export class Menu {
 
       const el = document.createElement('div');
       el.className = `mlabel ${it.cls}`;
-      el.innerHTML = `${it.icon ? `<svg class="ml-icon" viewBox="0 0 64 64"><use href="#${it.icon}"/></svg>` : ''}<span class="ml-title">${it.title}</span><span class="ml-sub">${it.sub}</span>`;
+      el.innerHTML = `${it.icon ? `<svg class="ml-icon" viewBox="0 0 64 64"><use href="#${it.icon}"/></svg>` : ''}<span class="ml-title">${title(it)}</span><span class="ml-sub">${t(`${it.key}.sub`)}</span>`;
       el.addEventListener('click', () => this._select(this.items.find((m) => m.it === it), null));
       this.labels.appendChild(el);
       this.items.push({ it, pivot, cable, el, phase: Math.random() * 6, cut: false });

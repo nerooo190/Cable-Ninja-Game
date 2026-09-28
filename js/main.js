@@ -8,6 +8,7 @@ import { Game } from './game.js';
 import { ui } from './ui.js';
 import { audio } from './audio.js';
 import { save } from './storage.js';
+import { t, applyStatic, onLangChange } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const bootLog = $('#bootLog');
@@ -21,11 +22,12 @@ let blade;
 let lastMode = 'classic';
 
 async function boot() {
+  applyStatic(); // DE / EN for all static markup
   const canvas = $('#gl');
   try {
     initWorld(canvas);
   } catch (e) {
-    bootLog.textContent = '> FATAL: WebGL nicht verfügbar.\n> Bitte einen aktuellen Browser verwenden.';
+    bootLog.textContent = t('boot.nogl');
     throw e;
   }
   log('GPU online – WebGL2 renderer ready');
@@ -55,16 +57,27 @@ async function boot() {
       // two-step confirmation inside the panel (no blocking browser dialog)
       if (btn.dataset.armed !== '1') {
         btn.dataset.armed = '1';
-        btn.textContent = 'WIRKLICH ALLES LÖSCHEN?';
+        btn.textContent = t('opt.reset.confirm');
         clearTimeout(btn._t);
-        btn._t = setTimeout(() => { btn.dataset.armed = ''; btn.textContent = 'FORMATIEREN (RESET)'; }, 3000);
+        btn._t = setTimeout(() => { btn.dataset.armed = ''; btn.textContent = t('opt.reset'); }, 3000);
         return;
       }
       btn.dataset.armed = '';
-      btn.textContent = 'FORMATIERT ✓';
+      btn.textContent = t('opt.reset.done');
       ui.resetProgress();
     },
     bloom: (on) => { world.useBloom = on; },
+  });
+
+  // live language switch: rebuild texts that were generated from script
+  onLangChange(() => {
+    ui.refreshMenuStats();
+    if (state === 'menu') menu.show();
+    if (state === 'shop') ui.renderShop();
+    if (state === 'game' || state === 'pause') {
+      ui.setHud(true, game.modeKey);
+      ui.setTimer(game.timeLeft);
+    }
   });
 
   // warm up shaders before the first frame is shown
