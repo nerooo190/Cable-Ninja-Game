@@ -51,8 +51,18 @@ async function boot() {
     restart: () => startGame(lastMode),
     menu: () => goMenu(),
     pause: () => pause(),
-    reset: () => {
-      if (confirm('Alle Rekorde, Upgrades und Datenvolumen löschen?')) ui.resetProgress();
+    reset: (btn) => {
+      // two-step confirmation inside the panel (no blocking browser dialog)
+      if (btn.dataset.armed !== '1') {
+        btn.dataset.armed = '1';
+        btn.textContent = 'WIRKLICH ALLES LÖSCHEN?';
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => { btn.dataset.armed = ''; btn.textContent = 'FORMATIEREN (RESET)'; }, 3000);
+        return;
+      }
+      btn.dataset.armed = '';
+      btn.textContent = 'FORMATIERT ✓';
+      ui.resetProgress();
     },
     bloom: (on) => { world.useBloom = on; },
   });
