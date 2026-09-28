@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asset Showroom – Data Cable Chaos</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html,body{overflow:auto;touch-action:auto;user-select:auto}
+    body{background:#0b0d16;padding:24px 16px 40px}
+    #view{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+    .sheet{position:relative;z-index:2;max-width:1180px;margin:0 auto;border:1.5px solid rgba(120,200,255,.35);border-radius:14px;padding:18px;background:rgba(10,14,30,.4)}
+    h1{font-family:var(--f-title);color:#9ff4ff;text-shadow:0 0 12px #1aa9ff;font-size:clamp(20px,3vw,34px);margin-bottom:4px}
+    .lead{font-family:var(--f-mono);color:var(--green);margin-bottom:18px;font-size:14px}
+    h2{font-family:var(--f-title);color:#bff6ff;font-size:20px;margin:18px 0 10px;border-bottom:1px solid rgba(120,200,255,.3);padding-bottom:6px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .cell{border:1px solid rgba(120,200,255,.2);border-radius:10px;background:rgba(0,0,0,.25)}
+    .cell .v{height:190px}
+    .cell p{font-family:var(--f-ui);font-weight:700;color:#e8f2ff;text-align:center;padding:6px 6px 0;font-size:16px}
+    .cell small{display:block;text-align:center;font-family:var(--f-mono);color:#8aa0c0;font-size:11px;padding-bottom:8px}
+    a{color:var(--cyan)}
+  </style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div class="sheet">
+  <h1>ASSET SHOWROOM</h1>
+  <p class="lead">Alle Modelle werden von <code>tools/build_models.py</code> als glTF (.glb) erzeugt · Kabel-Texturen aus <code>assets.jpg</code> extrahiert · <a href="index.html">→ zum Spiel</a></p>
+  <h2>KABELTYPEN</h2>
+  <div class="grid" id="g-cables"></div>
+  <h2>STECKER &amp; GEFAHREN</h2>
+  <div class="grid" id="g-models"></div>
+  <h2>SCHNITT-QUERSCHNITTE</h2>
+  <div class="grid" id="g-cuts"></div>
+</div>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { loadAssets, cloneModel } from './js/assets.js';
+import { Cable, Prop } from './js/cables.js';
+
+const canvas = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.setScissorTest(true);
+await loadAssets(renderer);
+
+// neon reflection environment
+const env = new THREE.Scene();
+[[0x33c8ff, -6], [0x9a4dff, 6]].forEach(([c, x]) => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(6, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(3), side: THREE.DoubleSide }));
+  m.position.x = x; m.rotation.y = Math.PI / 2; env.add(m);
+});
+const top = new THREE.Mesh(new THREE.PlaneGeometry(8, 3), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
+top.position.y = 6; top.rotation.x = Math.PI / 2; env.add(top);
+const envTex = new THREE.PMREMGenerator(renderer).fromScene(env, 0.03).texture;
+
+const cells = [];
+function add(gridId, title, sub, makeObj, dist = 7) {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = `<div class="v"></div><p>${title}</p><small>${sub}</small>`;
+  document.getElementById(gridId).appendChild(cell);
+  const scene = new THREE.Scene();
+  scene.environment = envTex;
+  scene.add(new THREE.HemisphereLight(0x8a7bff, 0x100818, 1.2));
+  const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(3, 5, 6); scene.add(d);
+  const obj = makeObj();
+  const box = new THREE.Box3().setFromObject(obj);
+  obj.position.sub(box.getCenter(new THREE.Vector3()));
+  const pivot = new THREE.Group(); pivot.add(obj); scene.add(pivot);
+  const size = box.getSize(new THREE.Vector3()).length();
+  const cam = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
+  cam.position.set(0, size * 0.3, size * 1.8 || dist);
+  cam.lookAt(0, 0, 0);
+  cells.push({ el: cell.querySelector('.v'), scene, cam, pivot, obj: makeObj.flyer });
+}
+const model = (name, s = 1) => { const f = () => { const m = cloneModel(name, new THREE.MeshStandardMaterial({ color: 0x1d6dff, emissive: 0x1d6dff, emissiveIntensity: 0.3 })); m.scale.setScalar(s); return m; }; return f; };
+const cable = (type) => { const f = () => { const c = new Cable(type); f.flyer = c; return c.group; }; return f; };
+const prop = (kind) => { const f = () => { const p = new Prop(kind); f.flyer = p; return p.group; }; return f; };
+
+add('g-cables', 'LAN (CAT6) Blau', 'Blue CAT6 · 100 GB/s', cable('lan'));
+add('g-cables', 'Fiber-Optik Gelb', 'Yellow Fiber-Optic · 150 GB/s', cable('fiber'));
+add('g-cables', 'Terminal-Leitung Grün', 'Green Terminal Line · 120 GB/s', cable('terminal'));
+add('g-cables', 'Koax Grau', 'Grey Coax · 90 GB/s', cable('coax'));
+add('g-cables', 'Glasfaser-Bündel', 'Bonus · UPLINK BOOST x2', cable('bundle'));
+add('g-cables', 'Starkstrom-Kabel Rot', 'GEFAHR · Systemabsturz', cable('hv'));
+add('g-models', 'RJ45-Stecker', 'rj45.glb', model('rj45'));
+add('g-models', 'SC-Glasfaserstecker', 'fiber_sc.glb', model('fiber_sc'));
+add('g-models', 'Gabelkabelschuh', 'terminal_fork.glb', model('terminal_fork'));
+add('g-models', 'F-Koaxstecker', 'coax_f.glb', model('coax_f'));
+add('g-models', '400V-Kabelende', 'hv_end.glb', model('hv_end'));
+add('g-models', 'Sicherheits-Firewall', 'firewall.glb · GEFAHR', prop('firewall'));
+add('g-models', 'Fehlerhaftes Datenpaket', 'packet.glb · 60 GB/s', prop('packet'));
+add('g-cuts', 'Schnitt CAT6', 'cut_lan.glb · 4 Adernpaare', model('cut_lan'));
+add('g-cuts', 'Schnitt Glasfaser', 'cut_fiber.glb · Aramid + Kern', model('cut_fiber'));
+add('g-cuts', 'Schnitt Kupfer', 'cut_copper.glb · Litze', model('cut_copper'));
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const w = innerWidth, h = innerHeight;
+  if (canvas.width !== Math.floor(w * renderer.getPixelRatio())) renderer.setSize(w, h, false);
+  renderer.setScissor(0, 0, w, h); renderer.setClearColor(0, 0); renderer.clear();
+  for (const c of cells) {
+    const r = c.el.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > h || r.right < 0 || r.left > w) continue;
+    c.pivot.rotation.y += dt * 0.7;
+    c.obj?.update?.(dt, 0);
+    c.cam.aspect = r.width / r.height; c.cam.updateProjectionMatrix();
+    const y = h - r.bottom;
+    renderer.setViewport(r.left, y, r.width, r.height);
+    renderer.setScissor(r.left, y, r.width, r.height);
+    renderer.render(c.scene, c.cam);
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
